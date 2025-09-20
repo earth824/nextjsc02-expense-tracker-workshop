@@ -1,4 +1,5 @@
 import ThemeToggle from '@/components/layout/theme-toggle';
+import UserMenu from '@/components/layout/user-menu';
 import { Button } from '@/components/ui/button';
 import { APP_NAME } from '@/config/env.config';
 import { LOGO_PATH } from '@/constants/public-path.constant';
@@ -41,7 +42,7 @@ export default function Header() {
         </Button>
         {/* <SearchButton /> */}
         <ThemeToggle />
-        {/* <UserMenu /> */}
+        <UserMenu />
       </div>
     </header>
   );
