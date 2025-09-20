@@ -1,3 +1,4 @@
+import SignOutButton from '@/components/layout/signout-button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -7,7 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { LogOutIcon } from 'lucide-react';
 
 export default function UserMenu() {
   return (
@@ -23,8 +23,7 @@ export default function UserMenu() {
         <DropdownMenuLabel>John Doe</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <LogOutIcon />
-          <span>Sign out</span>
+          <SignOutButton />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -4,6 +4,9 @@ import { signUpFormSchema } from '@/lib/schemas/auth.schema';
 import { ActionResult } from '@/types/action-result.type';
 import z from 'zod';
 import * as authService from '@/lib/services/auth.service';
+import { signIn, signOut } from '@/lib/auth/auth';
+import { CredentialsSignin } from 'next-auth';
+import { ROUTE } from '@/constants/route';
 
 export async function signUpWithCredentials(
   input: unknown
@@ -28,4 +31,23 @@ export async function signUpWithCredentials(
   } catch {
     return { success: false, message: 'Unexpected error occured' };
   }
+}
+
+export async function signInWithCredentials(
+  data: Record<string, unknown>
+): Promise<ActionResult> {
+  try {
+    data.redirect = false;
+    await signIn('credentials', data);
+    return { success: true };
+  } catch (error) {
+    if (error instanceof CredentialsSignin) {
+      return { success: false, message: 'Invalid credentials' };
+    }
+    return { success: false, message: 'Unexpected error occured' };
+  }
+}
+
+export async function signOutUser() {
+  await signOut({ redirectTo: ROUTE.SIGN_IN });
 }

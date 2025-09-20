@@ -6,3 +6,8 @@ export const signUpFormSchema = z.object({
   email: z.email(),
   password: z.string().regex(/^[a-zA-Z0-9]{6,}$/)
 });
+
+export const signInFormSchema = signUpFormSchema.pick({
+  email: true,
+  password: true
+});
