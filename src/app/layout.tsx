@@ -34,7 +34,7 @@ export default function RootLayout({
             <main className="flex-1 overflow-y-auto p-4">{children}</main>
             <Footer />
           </div>
-          <Toaster position="top-right" richColors />
+          <Toaster position="bottom-right" richColors />
         </ThemeProvider>
       </body>
     </html>

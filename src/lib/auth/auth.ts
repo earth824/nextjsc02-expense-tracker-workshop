@@ -3,8 +3,12 @@ import { signInFormSchema } from '@/lib/schemas/auth.schema';
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import * as bcrypt from 'bcrypt';
+import { ROUTE } from '@/constants/route';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  pages: {
+    signIn: ROUTE.SIGN_IN
+  },
   providers: [
     Credentials({
       async authorize(credentials) {
@@ -23,5 +27,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return user;
       }
     })
-  ]
+  ],
+  callbacks: {
+    jwt({ token, user }) {
+      if (user) {
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+      }
+      return token;
+    },
+    session({ token, session }) {
+      session.user.firstName = token.firstName;
+      session.user.lastName = token.lastName;
+      return session;
+    }
+  }
 });

@@ -7,6 +7,7 @@ import * as authService from '@/lib/services/auth.service';
 import { signIn, signOut } from '@/lib/auth/auth';
 import { CredentialsSignin } from 'next-auth';
 import { ROUTE } from '@/constants/route';
+import { redirect } from 'next/navigation';
 
 export async function signUpWithCredentials(
   input: unknown
@@ -39,13 +40,14 @@ export async function signInWithCredentials(
   try {
     data.redirect = false;
     await signIn('credentials', data);
-    return { success: true };
+    // return { success: true };
   } catch (error) {
     if (error instanceof CredentialsSignin) {
       return { success: false, message: 'Invalid credentials' };
     }
     return { success: false, message: 'Unexpected error occured' };
   }
+  redirect(ROUTE.TRANSACTION);
 }
 
 export async function signOutUser() {

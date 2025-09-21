@@ -10,13 +10,13 @@ import {
   FormMessage
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { ROUTE } from '@/constants/route';
+
 import { signInWithCredentials } from '@/lib/actions/auth.action';
 import { signInFormSchema } from '@/lib/schemas/auth.schema';
 import { SignInFormInput } from '@/types/auth.type';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { useTransition } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -28,7 +28,6 @@ export default function SignInForm() {
   });
 
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
 
   const onSubmit: SubmitHandler<SignInFormInput> = data => {
     startTransition(async () => {
@@ -36,12 +35,10 @@ export default function SignInForm() {
         const res = await signInWithCredentials(data);
         if (!res.success) {
           toast.error(res.message);
-        } else {
-          toast.success('Signed in successfully');
-          router.push(ROUTE.TRANSACTION);
         }
-      } catch {
-        toast.error('Something went wrong');
+      } catch (error) {
+        if (isRedirectError(error)) toast.success('Signed in successfully');
+        else toast.error('Something went wrong');
       }
     });
   };

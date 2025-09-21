@@ -5,3 +5,6 @@ export const ROUTE = {
   TRANSACTION: '/transaction',
   CREATE_TRANSACTION: '/transaction/create'
 } as const;
+
+export const PROTECTED_ROUTE: RegExp[] = [/\/transaction\/?.*/] as const;
+export const GUEST_ONLY_ROUTE: RegExp[] = [/\/signin/, /\/signup/] as const;
