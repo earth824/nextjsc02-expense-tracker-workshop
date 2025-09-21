@@ -34,3 +34,18 @@ export async function fetchTransaction() {
     }
   });
 }
+
+export async function fetchTransactionById(id: string) {
+  const session = await auth();
+  if (!session || !session.user || !session.user.id)
+    throw new Error('Session not found');
+
+  return prisma.transaction.findUnique({
+    where: { id, userId: session.user.id },
+    include: {
+      category: {
+        select: { type: true, id: true }
+      }
+    }
+  });
+}

@@ -23,7 +23,7 @@ export default function CreateTransactionPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <TransactionFormLoader />
+        <TransactionFormLoader mode="create" />
       </CardContent>
     </Card>
   );

@@ -21,9 +21,10 @@ import {
 } from '@/components/ui/select';
 import { ROUTE } from '@/constants/route';
 import { TRANSACTION_TYPE } from '@/constants/transaction.constant';
-import { Category } from '@/generated/prisma';
+import { Category, Prisma, TransactionType } from '@/generated/prisma';
 import { createTransaction } from '@/lib/actions/transaction.action';
 import { transactionFormSchema } from '@/lib/schemas/transaction.schema';
+import { ActionResult } from '@/types/action-result.type';
 import { TransactionFormInput } from '@/types/transaction.type';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
@@ -31,23 +32,56 @@ import { useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+type Transaction = {
+  id: string;
+  payee: string;
+  date: Date;
+  amount: string;
+  category: {
+    id: string;
+    type: TransactionType;
+  };
+};
+
+type EditMode = {
+  mode: 'edit';
+  action: (id: string, input: unknown) => Promise<ActionResult>;
+  transaction: Transaction;
+};
+
+type CreateMode = {
+  mode: 'create';
+  action: (input: unknown) => Promise<ActionResult>;
+};
+
+type DuplicateMode = {
+  mode: 'duplicate';
+  action: (input: unknown) => Promise<ActionResult>;
+  transaction: Transaction;
+};
+
 type TransactionFormProps = {
   incomes: Category[];
   expenses: Category[];
-};
+} & (CreateMode | EditMode | DuplicateMode);
 
-export default function TransactionForm({
-  incomes,
-  expenses
-}: TransactionFormProps) {
+export default function TransactionForm(props: TransactionFormProps) {
+  const { incomes, expenses, mode, action } = props;
+
+  let transaction: Transaction | undefined;
+
+  if (mode !== 'create') {
+    transaction = props.transaction;
+  }
+
   const form = useForm<TransactionFormInput>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
-      amount: '',
-      date: new Date(),
-      payee: '',
-      type: TRANSACTION_TYPE.EXPENSE,
-      categoryId: expenses[0].id
+      amount: transaction?.amount ?? '',
+      date: transaction?.date ?? new Date(),
+      payee: transaction?.payee ?? '',
+      type: transaction?.category.type ?? TRANSACTION_TYPE.EXPENSE,
+      categoryId: transaction?.category.id ?? expenses[0].id
     }
   });
 
@@ -55,9 +89,19 @@ export default function TransactionForm({
 
   useEffect(() => {
     if (selectedType === TRANSACTION_TYPE.EXPENSE) {
-      form.setValue('categoryId', expenses[0].id);
+      form.setValue(
+        'categoryId',
+        transaction?.category.type === TRANSACTION_TYPE.EXPENSE
+          ? transaction.category.id
+          : expenses[0].id
+      );
     } else {
-      form.setValue('categoryId', incomes[0].id);
+      form.setValue(
+        'categoryId',
+        transaction?.category.type === TRANSACTION_TYPE.INCOME
+          ? transaction.category.id
+          : incomes[0].id
+      );
     }
   }, [selectedType]);
 
@@ -65,7 +109,12 @@ export default function TransactionForm({
     selectedType === TRANSACTION_TYPE.EXPENSE ? expenses : incomes;
 
   const onSubmit: SubmitHandler<TransactionFormInput> = async data => {
-    await createTransaction(data);
+    if (mode === 'edit') {
+      await action(props.transaction.id, data);
+    } else {
+      action(data);
+    }
+
     toast.success('Created transaction successfully');
   };
 
