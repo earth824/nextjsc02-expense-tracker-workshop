@@ -20,30 +20,88 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { ROUTE } from '@/constants/route';
+import { TRANSACTION_TYPE } from '@/constants/transaction.constant';
+import { Category } from '@/generated/prisma';
+import { createTransaction } from '@/lib/actions/transaction.action';
+import { transactionFormSchema } from '@/lib/schemas/transaction.schema';
+import { TransactionFormInput } from '@/types/transaction.type';
+import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-export default function TransactionForm() {
-  const form = useForm();
+type TransactionFormProps = {
+  incomes: Category[];
+  expenses: Category[];
+};
+
+export default function TransactionForm({
+  incomes,
+  expenses
+}: TransactionFormProps) {
+  const form = useForm<TransactionFormInput>({
+    resolver: zodResolver(transactionFormSchema),
+    defaultValues: {
+      amount: '',
+      date: new Date(),
+      payee: '',
+      type: TRANSACTION_TYPE.EXPENSE,
+      categoryId: expenses[0].id
+    }
+  });
+
+  const selectedType = form.watch('type');
+
+  useEffect(() => {
+    if (selectedType === TRANSACTION_TYPE.EXPENSE) {
+      form.setValue('categoryId', expenses[0].id);
+    } else {
+      form.setValue('categoryId', incomes[0].id);
+    }
+  }, [selectedType]);
+
+  const categories =
+    selectedType === TRANSACTION_TYPE.EXPENSE ? expenses : incomes;
+
+  const onSubmit: SubmitHandler<TransactionFormInput> = async data => {
+    await createTransaction(data);
+    toast.success('Created transaction successfully');
+  };
+
   return (
     <Form {...form}>
-      <form className="grid grid-cols-2 gap-6">
+      <form
+        className="grid grid-cols-2 gap-6"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
         <FormField
           control={form.control}
-          name=""
+          name="type"
           render={({ field }) => (
             <FormItem className="col-span-2">
               <FormLabel className="text-xs">Transaction Type</FormLabel>
               <FormControl>
-                <RadioGroup className="flex gap-0">
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  className="flex gap-0"
+                >
                   <FormItem>
                     <FormControl>
-                      <RadioGroupItem value="" className="hidden" />
+                      <RadioGroupItem
+                        value={TRANSACTION_TYPE.EXPENSE}
+                        className="hidden"
+                      />
                     </FormControl>
                     <FormLabel>
                       <Button
                         asChild
                         className="w-24 rounded-r-none border-r-0 cursor-pointer"
+                        variant={
+                          field.value === TRANSACTION_TYPE.EXPENSE
+                            ? 'default'
+                            : 'outline'
+                        }
                       >
                         <span>Expense</span>
                       </Button>
@@ -51,12 +109,20 @@ export default function TransactionForm() {
                   </FormItem>
                   <FormItem>
                     <FormControl>
-                      <RadioGroupItem value="" className="hidden" />
+                      <RadioGroupItem
+                        value={TRANSACTION_TYPE.INCOME}
+                        className="hidden"
+                      />
                     </FormControl>
                     <FormLabel>
                       <Button
                         asChild
                         className="w-24 rounded-l-none cursor-pointer"
+                        variant={
+                          field.value === TRANSACTION_TYPE.INCOME
+                            ? 'default'
+                            : 'outline'
+                        }
                       >
                         <span>Income</span>
                       </Button>
@@ -71,7 +137,7 @@ export default function TransactionForm() {
 
         <FormField
           control={form.control}
-          name=""
+          name="payee"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Payee</FormLabel>
@@ -85,7 +151,7 @@ export default function TransactionForm() {
 
         <FormField
           control={form.control}
-          name=""
+          name="date"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Transaction Date</FormLabel>
@@ -96,20 +162,23 @@ export default function TransactionForm() {
         />
 
         <FormField
-          name=""
+          control={form.control}
+          name="categoryId"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Category</FormLabel>
-              <Select>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="1">Automobile</SelectItem>
-                  <SelectItem value="2">Drink</SelectItem>
-                  <SelectItem value="3">Education</SelectItem>
+                  {categories.map(el => (
+                    <SelectItem key={el.id} value={el.id}>
+                      {el.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage className="text-xs" />
@@ -118,7 +187,8 @@ export default function TransactionForm() {
         />
 
         <FormField
-          name=""
+          control={form.control}
+          name="amount"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Amount</FormLabel>

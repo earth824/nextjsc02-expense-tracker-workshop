@@ -1,4 +1,5 @@
 import TransactionForm from '@/components/transaction/transaction-form';
+import TransactionFormLoader from '@/components/transaction/transaction-form-loader';
 import {
   Card,
   CardContent,
@@ -22,7 +23,7 @@ export default function CreateTransactionPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <TransactionForm />
+        <TransactionFormLoader />
       </CardContent>
     </Card>
   );
