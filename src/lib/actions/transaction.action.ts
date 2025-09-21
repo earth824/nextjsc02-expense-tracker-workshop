@@ -13,7 +13,8 @@ import { redirect } from 'next/navigation';
 
 export async function createTransaction(input: unknown): Promise<ActionResult> {
   try {
-    const { data, success } = transactionFormSchema.safeParse(input);
+    const { data, success } =
+      transactionFormSchemaExcludeTypeSchema.safeParse(input);
     if (!success) throw new Error('Validation Error');
 
     const session = await auth();
@@ -30,4 +31,9 @@ export async function createTransaction(input: unknown): Promise<ActionResult> {
     throw new Error('Something went wrong');
   }
   redirect(ROUTE.TRANSACTION);
+}
+
+export async function deleteTransaction(id: string) {
+  await prisma.transaction.delete({ where: { id } });
+  revalidatePath(ROUTE.TRANSACTION);
 }

@@ -1,14 +1,14 @@
-import { ROUTE } from '@/constants/route';
-import { auth } from '@/lib/auth/auth';
+import TransactionList from '@/components/transaction/transaction-list';
 import { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Transaction'
 };
 
 export default async function TransactionPage() {
-  const session = await auth();
-  if (!session) redirect(ROUTE.SIGN_IN);
-  return <div>TransactionPage</div>;
+  return (
+    <div className="flex flex-col gap-4">
+      <TransactionList />
+    </div>
+  );
 }

@@ -1,4 +1,6 @@
 import { TRANSACTION_TYPE } from '@/constants/transaction.constant';
+import { Prisma } from '@/generated/prisma';
+import { auth } from '@/lib/auth/auth';
 import prisma from '@/lib/prisma';
 
 export async function fetchCategory() {
@@ -13,5 +15,22 @@ export function fetchCategoryByType(
   return prisma.category.findMany({
     orderBy: [{ sequence: 'desc' }, { name: 'asc' }],
     where: { type }
+  });
+}
+
+export async function fetchTransaction() {
+  const session = await auth();
+
+  if (!session || !session.user || !session.user.id)
+    throw new Error('Session not found');
+
+  return prisma.transaction.findMany({
+    where: { userId: session.user.id },
+    orderBy: { date: 'desc' },
+    include: {
+      category: {
+        select: { image: true, type: true }
+      }
+    }
   });
 }
